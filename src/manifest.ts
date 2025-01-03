@@ -34,14 +34,6 @@ export async function getManifest() {
             128: './assets/drive-favicon.png',
         },
 
-        permissions: [
-        ],
-
-        host_permissions: [
-            'https://*.drivecommerce.com/*',
-            'https://*.drrv.co/*'
-        ],
-
         devtools_page: './dist/devtools/index.html',
 
         content_scripts: [
