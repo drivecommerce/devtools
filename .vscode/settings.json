@@ -1,0 +1,15 @@
+{
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "vite.autoStart": false,
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "files.associations": {
+        "*.css": "postcss"
+    },
+    "[vue]": {
+        "editor.tabSize": 4
+    },
+    "editor.detectIndentation": false
+}

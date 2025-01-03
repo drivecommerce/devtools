@@ -1,0 +1,244 @@
+# ------------------------------------------------------------------------------
+# Azure DevOps Pipelines YAML
+# ---
+# Schema:
+#   https://aka.ms/yaml
+# ------------------------------------------------------------------------------
+
+name: $(Date:yyyy.MM.dd)$(Rev:.rr)
+
+# ------------------------------------------------------------------------------
+# Triggers
+# ------------------------------------------------------------------------------
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - development
+
+# ------------------------------
+# Pull Request Triggers:
+# ------------------------------
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/bitbucket?view=azure-devops&tabs=yaml#pr-triggers
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/customize-pipeline?view=azure-devops#customize-ci-triggers
+#   - "By default, the pipeline runs for each pull request change."
+#     - No; bad.
+pr: none
+
+# ------------------------------------------------------------------------------
+# Build Environment
+# ------------------------------------------------------------------------------
+
+pool:
+  vmImage: ubuntu-latest
+
+# ------------------------------
+# Variables
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=example%2Cparameter-schema#variables
+# ------------------------------
+variables:
+  build: $(build.buildNumber)
+
+  pnpm_config_cache: $(Pipeline.Workspace)/.pnpm-store
+
+  tier: 'prd'
+  clientName: 'drive'
+  integration: 'devtools'
+  projectName: 'addon'
+
+  # What folder to build.
+  workingDirectory: '.'
+  # Under the working folder, where is the build directory.
+  buildDirectory: '.'
+
+  # Root CDN link.
+  resultRootLink: 'https://build.drrv.co/'
+
+  jobName: ${{ format('{0}_{1}_{2}_{3}', variables.tier, variables.clientName, variables.integration, variables.projectName) }}
+  jobNameDisplay: ${{ format('{0}/{1}/{2}/{3}', variables.tier, variables.clientName, variables.integration, variables.projectName) }}
+
+  uploadPathTagged: ${{ format('{0}/build-v{1}', variables.projectName, variables.build) }}
+
+  resultBuildLink: "$(resultRootLink)$(BUILD_STORAGE_CONTAINER)/$(uploadPathTagged)"
+  resultPackageLink: "$(resultRootLink)$(BUILD_STORAGE_CONTAINER)/$(uploadPathTagged)/build-$(build.buildNumber).zip"
+
+  startingSlackMessage: >-
+    {"channel":"$(SLACK_CHANNEL_ID)","blocks": [
+    {"type":"section","text":{"type":"mrkdwn","text":":robot_face: *$(jobNameDisplay)* is 🚀 starting"}}
+    ]}
+
+  failedSlackMessage: >-
+    {"channel":"$(SLACK_CHANNEL_ID)","blocks": [
+    {"type":"section","text":{"type":"mrkdwn","text":":robot_face: *$(jobNameDisplay)* has :octagonal_sign: failed"}}
+    ]}
+
+  successSlackMessage: >-
+    {"channel":"$(SLACK_CHANNEL_ID)","blocks": [
+    {"type":"section","text":{"type":"mrkdwn","text":":robot_face: *$(jobNameDisplay)* completed :white_check_mark: *successfully*"}},
+    {"type":"divider"},
+    {"type":"section","text":{"type":"mrkdwn","text":"🕒 *Date tagged build:*\n\n"}},
+    {"type":"section","text":{"type":"mrkdwn","text":"> 🗂️ Build uploaded to $(resultBuildLink)\n> \n> 🗄️ Build package $(resultPackageLink)"}},
+    {"type":"section","text":{"type":"mrkdwn","text":"\n\n"}},
+    ]}
+
+# ------------------------------
+# Build steps
+# ------------------------------
+
+jobs:
+  - deployment: "${{ variables.jobName }}"
+    displayName: "${{ variables.jobNameDisplay }} | Build & Publish"
+
+    # ------------------------------
+    # Deployment Settings
+    # ------------------------------
+
+    environment: 'production'
+
+    # How long to run the job before automatically cancelling. Default: 60
+    timeoutInMinutes: 15
+    # How much time to give 'run always even if cancelled tasks' before stopping them. Default: 5
+    cancelTimeoutInMinutes: 2
+
+    # ------------------------------
+    # Actual Build Pipeline, Finally
+    # ------------------------------
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - bash: |
+              set -x
+              curl -s -H "Content-type: application/json" \
+                --data '$(startingSlackMessage)' \
+                -H "Authorization: Bearer $SLACK_AUTH_TOKEN" \
+                -X POST https://slack.com/api/chat.postMessage
+            env:
+              SLACK_AUTH_TOKEN: $(SLACK_AUTH_TOKEN)
+              startingSlackMessage: $(startingSlackMessage)
+            displayName: "Send starting notification"
+
+          - script: echo 'BUILD_STORAGE_CONTAINER should have a value' && exit 1;
+            condition: eq(variables['BUILD_STORAGE_CONTAINER'], '')
+            displayName: 'Check settings...'
+            env:
+              BUILD_STORAGE_TOKEN: $(BUILD_STORAGE_CONTAINER)
+
+          - script: echo 'BUILD_STORAGE_ACCOUNT should have a value' && exit 1;
+            condition: eq(variables['BUILD_STORAGE_ACCOUNT'], '')
+            displayName: 'Check settings...'
+            env:
+              BUILD_STORAGE_TOKEN: $(BUILD_STORAGE_ACCOUNT)
+
+          - script: echo 'BUILD_STORAGE_TOKEN should have a value' && exit 1;
+            condition: eq(variables['BUILD_STORAGE_TOKEN'], '')
+            displayName: 'Check settings...'
+            env:
+              BUILD_STORAGE_TOKEN: $(BUILD_STORAGE_TOKEN)
+
+          - script: echo 'SLACK_AUTH_TOKEN should have a value' && exit 1;
+            condition: eq(variables['SLACK_AUTH_TOKEN'], '')
+            displayName: 'Check settings...'
+            env:
+              BUILD_STORAGE_TOKEN: $(SLACK_AUTH_TOKEN)
+
+          - script: echo 'SLACK_CHANNEL_ID should have a value' && exit 1;
+            condition: eq(variables['SLACK_CHANNEL_ID'], '')
+            displayName: 'Check settings...'
+            env:
+              BUILD_STORAGE_TOKEN: $(SLACK_CHANNEL_ID)
+
+          - script: echo 'Should upload latest to $(uploadPathLatest)'
+            displayName: 'Check settings...'
+
+          - script: echo 'Should upload tagged to $(uploadPathTagged)'
+            displayName: 'Check settings...'
+
+          # ------------------------------
+          # Continuous Integration
+          # ------------------------------
+          # ---
+          # Get Source Repository
+          # ---
+          # Since we're doing the CI in with the CD in the `deploy`
+          # step, we need to actually manually checkout the repository.
+          # This can only be run once per deployment.
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Install Node'
+            inputs:
+              versionSource: 'spec'
+              versionSpec: '20.x'
+
+          - script: |
+              corepack enable
+              corepack prepare pnpm@latest-8 --activate
+              pnpm config set store-dir $(pnpm_config_cache)
+            displayName: "Setup pnpm"
+
+          - script: |
+              pnpm install
+            displayName: 'Install dependencies'
+            workingDirectory: $(workingDirectory)
+
+          - script: |
+              pnpm run build
+            displayName: 'Build extension'
+            workingDirectory: $(workingDirectory)
+
+          - script: |
+              pnpm run pack
+            displayName: 'Package extension'
+            workingDirectory: $(workingDirectory)
+
+          - script: mv ./extension.zip ./build-$(build.buildNumber).zip
+            displayName: 'Zip the build'
+
+          # ------------------------------
+          # Upload
+          # ------------------------------
+
+          - bash: |
+              set -x
+              az storage blob upload-batch \
+                --destination "$(BUILD_STORAGE_CONTAINER)" \
+                --account-name "$(BUILD_STORAGE_ACCOUNT)" \
+                --sas-token "$(BUILD_STORAGE_TOKEN)" \
+                --destination-path "$(uploadPathTagged)" \
+                --source ./$(buildDirectory)/ --pattern "build-*.zip" --overwrite true
+            displayName: 'Upload to tagged...'
+            workingDirectory: $(workingDirectory)
+            env:
+              BUILD_STORAGE_CONTAINER: $(BUILD_STORAGE_CONTAINER)
+              BUILD_STORAGE_ACCOUNT: $(BUILD_STORAGE_ACCOUNT)
+              BUILD_STORAGE_TOKEN: $(BUILD_STORAGE_TOKEN)
+              uploadPathTagged: $(uploadPathTagged)
+
+          # ------------------------------
+          # Notify
+          # ------------------------------
+
+          - bash: |
+              set -x
+              curl -s -H "Content-type: application/json" \
+                --data '$(failedSlackMessage)' \
+                -H "Authorization: Bearer $SLACK_AUTH_TOKEN" \
+                -X POST https://slack.com/api/chat.postMessage
+            env:
+              SLACK_AUTH_TOKEN: $(SLACK_AUTH_TOKEN)
+              failedSlackMessage: $(failedSlackMessage)
+            displayName: "Send failure notification"
+            condition: failed()
+
+          - bash: |
+              set -x
+              curl -s -H "Content-type: application/json" \
+                --data '$(successSlackMessage)' \
+                -H "Authorization: Bearer $SLACK_AUTH_TOKEN" \
+                -X POST https://slack.com/api/chat.postMessage
+            env:
+              SLACK_AUTH_TOKEN: $(SLACK_AUTH_TOKEN)
+              successSlackMessage: $(successSlackMessage)
+            displayName: "Send success notification"
