@@ -58,6 +58,10 @@
             return view.production;
         }
 
+        if (image.endsWith('.tiff')) {
+            return view.production;
+        }
+
         return null;
     }
 </script>

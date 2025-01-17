@@ -185,6 +185,47 @@ export function createInterceptors() {
     };
 
     /**
+     * Add analytics event.
+     */
+    const handleAddAnalytics = async (
+        request: any,
+        body: any,
+        url: string
+    ) => {
+        let parsedRequest = {};
+
+        try {
+            parsedRequest = request ? JSON.parse(request) : null;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+            // Nothing.
+        }
+
+        let parsedBody = {};
+
+        try {
+            parsedBody = JSON.parse(body);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+            // Nothing.
+        }
+
+        const parsedData = {
+            label: 'Analytics',
+            url,
+            dataType: 'analytics',
+            data: parsedBody,
+            request: parsedRequest,
+        };
+
+        state.blueprintData.unshift(parsedData);
+
+        if (state.selectedBlueprintDataIndex < 0) {
+            state.selectedBlueprintDataIndex = 0;
+        }
+    };
+
+    /**
      * Add datagrid query.
      */
     const handleAddDataGrid = async (
@@ -245,6 +286,7 @@ export function createInterceptors() {
             handleAddCustomServiceCall,
             handleAddModeration,
             handleAddDataGrid,
+            handleAddAnalytics,
         );
     };
 
@@ -276,5 +318,6 @@ export function createInterceptors() {
         handleAddCustomServiceCall,
         handleAddModeration,
         handleAddDataGrid,
+        handleAddAnalytics,
     };
 }

@@ -19,6 +19,7 @@
                 Request details
             </span>
         </div>
+
         <ObjectVisualizer
             root-name="JSON"
             :data="requestData"
@@ -94,14 +95,9 @@
     import { ObjectVisualizer } from 'object-visualizer';
     import 'object-visualizer/dist/index.min.css';
 
-
     const props = defineProps<{
-        jsonData: any;
-        expanded: {
-            type: boolean,
-            required: false,
-            default: false,
-        }
+        jsonData: any
+        expanded?: boolean
     }>();
 
     const filter = ref('');
