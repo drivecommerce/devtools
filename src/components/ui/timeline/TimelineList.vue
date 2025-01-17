@@ -66,6 +66,14 @@
                       dark:bg-red-800/30 dark:text-red-500
                     "
                 >Moderation</span>
+                <span
+                    v-if="item.dataType === 'analytics'"
+                    class="
+                      inline-flex items-center gap-x-1.5 rounded-full bg-pink-100 px-3 py-1.5 text-xs font-medium text-pink-800
+
+                      dark:bg-pink-800/30 dark:text-pink-500
+                    "
+                >Analytics</span>
             </template>
         </TimelineListItem>
     </div>

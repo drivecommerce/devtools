@@ -32,6 +32,12 @@
                 />
 
                 <AppJsonViewerPanel
+                    v-else-if="selectedJsonData?.dataType === 'analytics'"
+                    title="Action analytics event"
+                    :expanded="true"
+                />
+
+                <AppJsonViewerPanel
                     v-else-if="selectedJsonData?.dataType === 'datagrid'"
                     title="Data grid query"
                     :expanded="true"
@@ -74,6 +80,8 @@
     import mockDataGridRequest from '@/mockups/mockDataGridRequest';
     // @ts-expect-error Test data
     import mockDataGridResponse from '@/mockups/mockDataGridResponse';
+    // @ts-expect-error Test data
+    import mockAnalytics from '@/mockups/mockAnalytics';
 
     const interceptors = createInterceptors();
     const settings = createSettings();
@@ -110,6 +118,7 @@
                     interceptors.handleAddRecipe(JSON.stringify(mockRecipeSmallWithProduction), 'recipe-save');
                     interceptors.handleAddRecipe(JSON.stringify(mockRecipeSmallWithProduction), 'recipe-load');
                     interceptors.handleAddBlueprint(JSON.stringify(mockBlueprintLarge), 0, 'https://test2');
+                    interceptors.handleAddAnalytics(JSON.stringify(mockAnalytics), 0, 'https://test2');
                 }
             }
         }, 100);
