@@ -71,7 +71,7 @@ export const wireUpDataInterceptors = (
                     case 'POST':
                         // POST can be done to save a recipe or to perform moderation or query requests.
                         if (url.pathname.startsWith('/api/v2/blueprint/action/record')) {
-                            handleAnalytics(req.request.postData?.text ?? '{}', body, req.request.url);
+                            handleAddAnalytics(req.request.postData?.text ?? '{}', body, req.request.url);
                         } else if (url.pathname.startsWith('/api/v2/blueprint/review/text')) {
                             handleAddModeration(req.request.postData?.text ?? '{}', body, req.request.url);
                         } else if (url.pathname.startsWith('/api/v2/blueprint/query/datagrid')) {
