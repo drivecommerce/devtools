@@ -1,7 +1,7 @@
 {
     "name": "drive-devtools",
     "displayName": "Drive DevTools",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "packageManager": "pnpm@8.3.1",
     "description": "A devtools extension to support Drive Commerce development and customer care.",
     "scripts": {
