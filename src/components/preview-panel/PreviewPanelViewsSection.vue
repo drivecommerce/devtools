@@ -57,7 +57,7 @@
 
     function makeImageLink(v: any) {
         if (v?.startsWith('//')) {
-            return `https://${v}`;
+            return `https:${v}`;
         }
 
         return v;
