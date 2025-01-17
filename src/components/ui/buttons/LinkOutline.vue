@@ -12,7 +12,7 @@
 
           hover:bg-gray-50
         "
-        :href="href"
+        :href="hrefResolved"
         target="_blank"
     >
         <slot />
@@ -22,10 +22,22 @@
 <script lang="ts" setup>
     import { defineProps } from 'vue';
 
-    defineProps({
+    const props = defineProps({
         href: {
             type: String,
             required: true
         },
+    });
+
+    const hrefResolved = computed(() => {
+        if (props.href == null) {
+            return '';
+        }
+
+        if (props.href.startsWith('//')) {
+            return `https:${props.href}`
+        }
+
+        return props.href;
     });
 </script>
