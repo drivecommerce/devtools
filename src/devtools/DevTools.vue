@@ -17,34 +17,40 @@
             >
                 <AppJsonViewerPanel
                     v-if="selectedJsonData?.dataType === 'blueprint'"
+                    :key="`blueprint-${selectedJsonData.id}`"
                     title="Blueprint details"
                 />
 
                 <AppJsonViewerPanel
                     v-else-if="selectedJsonData?.dataType === 'custom-service'"
+                    :key="`custom-service-${selectedJsonData.id}`"
                     title="Custom service details"
                 />
 
                 <AppJsonViewerPanel
                     v-else-if="selectedJsonData?.dataType === 'moderation'"
+                    :key="`moderation-${selectedJsonData.id}`"
                     title="Moderation check"
                     :expanded="true"
                 />
 
                 <AppJsonViewerPanel
                     v-else-if="selectedJsonData?.dataType === 'analytics'"
+                    :key="`analytics-${selectedJsonData.id}`"
                     title="Action analytics event"
                     :expanded="true"
                 />
 
                 <AppJsonViewerPanel
                     v-else-if="selectedJsonData?.dataType === 'datagrid'"
+                    :key="`datagrid-${selectedJsonData.id}`"
                     title="Data grid query"
                     :expanded="true"
                 />
 
                 <AppPreviewPanel
                     v-else-if="selectedJsonData?.dataType === 'recipe-save' || selectedJsonData?.dataType === 'recipe-load'"
+                    :key="`recipe-${selectedJsonData.id}`"
                 />
 
                 <template v-else>
