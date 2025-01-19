@@ -14,7 +14,7 @@
                     Product style code
                 </template>
                 <template #content>
-                    {{ selectedJsonData.styleCode }}
+                    {{ selectedJsonData.data.styleCode }}
                 </template>
             </DescriptionListItem>
             <DescriptionListItem>
@@ -22,7 +22,7 @@
                     Product name
                 </template>
                 <template #content>
-                    {{ selectedJsonData.data.styleCode }}
+                    {{ selectedJsonData.data.name }}
                 </template>
             </DescriptionListItem>
             <DescriptionListItem>
