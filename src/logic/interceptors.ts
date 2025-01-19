@@ -16,6 +16,14 @@ interface State {
     jsonControlPanelMode: string;
 }
 
+let uniqueId = 0;
+
+function nextId() {
+    uniqueId += 1;
+
+    return `id-${uniqueId}`;
+}
+
 export function createInterceptors() {
     const state = reactive<State>({
         blueprintData: [] as BlueprintData[],
@@ -57,6 +65,7 @@ export function createInterceptors() {
         }
 
         const parsedData = {
+            id: nextId(),
             label,
             url,
             dataType: 'blueprint',
@@ -96,6 +105,7 @@ export function createInterceptors() {
             const recipeBody = await recipeData.json();
 
             const parsedData = {
+                id: nextId(),
                 label: parsedBody.id,
                 url: location,
                 dataType: type,
@@ -130,6 +140,7 @@ export function createInterceptors() {
         }
 
         const parsedData = {
+            id: nextId(),
             label,
             url,
             dataType: 'custom-service',
@@ -170,6 +181,7 @@ export function createInterceptors() {
         }
 
         const parsedData = {
+            id: nextId(),
             label: 'Moderation',
             url,
             dataType: 'moderation',
@@ -211,6 +223,7 @@ export function createInterceptors() {
         }
 
         const parsedData = {
+            id: nextId(),
             label: 'Analytics',
             url,
             dataType: 'analytics',
@@ -258,6 +271,7 @@ export function createInterceptors() {
         }
 
         const parsedData = {
+            id: nextId(),
             label,
             url,
             dataType: 'datagrid',
